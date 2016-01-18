@@ -96,6 +96,7 @@ defmodule HappyTest do
     b = quote do
       cond do
         foo = bar -> foo
+        :else -> :error
       end
     end
     assert_expands_to a, b, __ENV__
@@ -113,6 +114,7 @@ defmodule HappyTest do
       cond do
         foo = bar -> baz
           bat
+        :else -> :error
       end
     end
     assert_expands_to a, b, __ENV__
@@ -130,8 +132,9 @@ defmodule HappyTest do
     b = quote do
       cond do
         foo = bar -> baz
-        bat
-        moo
+          bat
+          moo
+        :else -> :error
       end
     end
     assert_expands_to a, b, __ENV__
@@ -151,7 +154,9 @@ defmodule HappyTest do
         foo = bar -> baz
           cond do
             bat = man -> moo
+            :else -> :error
           end
+        :else -> :error
       end
     end
     assert_expands_to a, b, __ENV__
