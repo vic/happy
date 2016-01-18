@@ -40,7 +40,7 @@ import Happy
 
 ### the `happy` macro
 
-The `happy` macro takes a `do` block and rewrites any first-level pattern matching expression into a case.
+The `happy` macro takes a `do` block and rewrites any first-level pattern matching expression into a `cond`.
 
 ```elixir
 happy do
@@ -63,7 +63,8 @@ cond do
 end
 ```
 
-if you provide an `else` block, it must contain `cond` clauses to recover on errors:
+The default `:else -> :error` unhappy path can be customized
+by an `else` block which must contain additional `cond` clauses like:
 
 ```elixir
 happy do
