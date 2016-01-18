@@ -162,4 +162,36 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "single block with else expands to itself" do
+    a = quote do
+      happy do
+        foo
+      else
+        :true -> :unhappy
+      end
+    end
+    b = quote do
+      foo
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "happy with else block, match and expr expands to cond" do
+    a = quote do
+      happy do
+        foo = bar
+        foo
+      else
+        :unhappy -> bar
+      end
+    end
+    b = quote do
+      cond do
+        foo = bar -> foo
+        :unhappy -> bar
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end
