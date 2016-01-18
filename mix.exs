@@ -5,9 +5,28 @@ defmodule Happy.Mixfile do
     [app: :happy,
      version: "0.0.1",
      elixir: "~> 1.2",
+     description: description,
+     package: package,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps]
+  end
+
+  def description do
+    """
+    Happy path programming in elixir.
+
+    Alternative to ok_jose, elixir's 1.2 `with` keyword and that kind of stuff.
+    """
+  end
+
+  def package do
+    [files: ~w(lib mix.exs README* LICENSE),
+     maintainers: ["Victor Hugo Borja <vborja@apache.org>"],
+     licenses: ["Apache 2.0"],
+     links: %{
+       "GitHub" => "https://github.com/vic/happy"
+     }]
   end
 
   # Configuration for the OTP application
