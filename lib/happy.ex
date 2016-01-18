@@ -1,0 +1,2 @@
+defmodule Happy do
+end
