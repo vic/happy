@@ -1,10 +1,10 @@
 # Happy
 
-the alchemist happy path with elixir
+the alchemist [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+[Available in Hex](https://hex.pm/packages/happy), the package can be installed as:
 
   1. Add happy to your list of dependencies in `mix.exs`:
 
