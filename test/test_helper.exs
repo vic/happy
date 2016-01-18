@@ -6,7 +6,7 @@ defmodule Happy.Test do
   def assert_expands_to(a, b, env) do
     Macro.expand_once(a, env)
     |> case do
-      ^b -> assert(true)
+      ^b -> assert(a)
       ^a -> flunk("Expected\n#{Macro.to_string(a)}\n\nto expand to\n#{Macro.to_string(b)}")
        x -> assert_expands_to(x, b, env)
     end

@@ -53,17 +53,67 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "block wit match and expr expands to cond" do
+  test "block with match and expr expands to cond" do
+    a = quote do
+      happy do
+        foo = bar
+        foo
+      end
+    end
+    b = quote do
+      cond do
+        foo = bar -> foo
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "block with match and two exprs expands to cond" do
     a = quote do
       happy do
         foo = bar
         baz
+        bat
       end
     end
     b = quote do
       cond do
         foo = bar -> baz
+          bat
       end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "block with match and three exprs expands to cond" do
+    a = quote do
+      happy do
+        foo = bar
+        baz
+        bat
+        moo
+      end
+    end
+    b = quote do
+      cond do
+        foo = bar -> baz
+        bat
+        moo
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "block with expr and match expands to itself" do
+    a = quote do
+      happy do
+        baz
+        foo = baz
+      end
+    end
+    b = quote do
+      baz
+      foo = baz
     end
     assert_expands_to a, b, __ENV__
   end
