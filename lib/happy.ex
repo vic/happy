@@ -8,7 +8,7 @@ defmodule Happy do
     end
   end
 
-  defmacro happy([do: block]), do: block
+  defmacro happy([do: expr]), do: expr
 
   defp happy_path(a, []), do: a
   defp happy_path(a, [b | xs]), do: happy_path(a, b, xs)
@@ -19,6 +19,10 @@ defmodule Happy do
         unquote(a) -> unquote(b)
       end
     end |> happy_path(xs)
+  end
+
+  defp happy_path(a = {:cond, [], _}, b = {:=, _, [_, _]}, xs) do
+    happy_path(a, [happy_path(b, xs)])
   end
 
   defp happy_path(a =

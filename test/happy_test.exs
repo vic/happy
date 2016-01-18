@@ -53,6 +53,20 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "block with expr and match expands to itself" do
+    a = quote do
+      happy do
+        baz
+        foo = baz
+      end
+    end
+    b = quote do
+      baz
+      foo = baz
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
   test "block with match and expr expands to cond" do
     a = quote do
       happy do
@@ -104,19 +118,24 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "block with expr and match expands to itself" do
+  test "block with match exprs and other match expands to nested cond" do
     a = quote do
       happy do
+        foo = bar
         baz
-        foo = baz
+        bat = man
+        moo
       end
     end
     b = quote do
-      baz
-      foo = baz
+      cond do
+        foo = bar -> baz
+          cond do
+            bat = man -> moo
+          end
+      end
     end
     assert_expands_to a, b, __ENV__
   end
-
 
 end
