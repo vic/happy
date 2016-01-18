@@ -67,6 +67,25 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+
+  test "block with elixir cond expands to itself" do
+    a = quote do
+      happy do
+        cond do
+          true -> nil
+        end
+        foo
+      end
+    end
+    b = quote do
+      cond do
+        true -> nil
+      end
+      foo
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
   test "block with match and expr expands to cond" do
     a = quote do
       happy do
