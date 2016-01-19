@@ -84,7 +84,7 @@ end
 ```
 
 
-###### Another example creating a user
+###### Example usage in a web application creating a user
 
 ```elixir
 happy do
@@ -95,8 +95,8 @@ happy do
 
 else
 
-  %{valid?: false} = ch -> render(conn, "invalid_input.html", ch: ch)
-  {:error, ch} -> render(conn, "didnt_insert.html", ch: ch)
+  %{valid?: false} = ch -> render(conn, "validation_errors.json", ch: ch)
+  {:error, ch} -> render(conn, "db_error.json", ch: ch)
   _ -> text(conn, "error")
 
 end
