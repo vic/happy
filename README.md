@@ -14,7 +14,7 @@ the alchemist [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
 ```elixir
   def deps do
-    [{:happy, "~> 0.0.2"}]
+    [{:happy, "~> 0.0.3"}]
   end
 ```
 
@@ -38,9 +38,9 @@ following goals in mind:
 import Happy
 ```
 
-### the `happy` macro
+###### the `happy` macro
 
-The `happy` macro takes a `do` block and rewrites any first-level pattern matching expression into a `cond`.
+The `happy` macro takes a `do` block and rewrites any first-level pattern matching expression into a `case`.
 
 ```elixir
 happy do
@@ -53,31 +53,51 @@ end
 gets rewritten to:
 
 ```elixir
-cond do
-  {:ok, b} = a ->
-    cond do
-      {:ok, d} = b -> c(d)
-      :else -> :error
+case(a) do
+  {:ok, b} ->
+    case (b) do
+      {:ok, d} -> c(d)
     end
-  :else -> :error
 end
 ```
 
-The default `:else -> :error` unhappy path can be customized
-by an `else` block which must contain additional `cond` clauses like:
+If you want to handle non-matching values,
+provide use an `else` block:
+
+```elixir
+happy do
+  {:ok, b} = a
+  x(b)
+else
+  x -> x
+end
+```
+
+gets rewritten to:
+
+```elixir
+case(a) do
+  {:ok, b} -> x(b)
+  x -> x
+end
+```
+
+
+###### Another example creating a user
 
 ```elixir
 happy do
   # happy path
-  ch = User.changeset(params)
-  true = ch.valid?
+  %Ecto.Changeset{valid?: true} = User.changeset(params)
   {:ok, user} = Repo.insert
   render(conn, "user.json", user: user)
 else
   # unhappy path
+  invalid = %Ecto.Changeset{valid?: false} ->
+    conn |> put_status(500) |> text("invalid changeset")
   {:error, changeset = %Changeset{}} ->
-    render(conn, "error.json", changeset: changeset)
-  :else ->
+    conn |> put_status(500) |> text("could not insert")
+  _ ->
     conn |> put_status(500) |> text("error")
 end
 ```

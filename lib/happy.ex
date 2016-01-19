@@ -5,7 +5,7 @@ defmodule Happy do
   """
 
   @unhappy (quote do
-    :else -> :error
+    x -> x
   end)
 
   # happy block with at least two expressions
@@ -36,51 +36,51 @@ defmodule Happy do
   @doc false
   defmacro happy([do: expr]), do: expr
 
-  # append unhappy path to cond when no more expressions remain
-  defp happy_path({:cond, m = [happy: true], [[do: xs]]}, [], unhappy) do
-    {:cond, m, [[do: xs ++ unhappy]]}
+  # append unhappy path to case when no more expressions remain
+  defp happy_path({:case, m = [happy: true], [e, [do: xs]]}, [], unhappy) do
+    {:case, m, [e, [do: xs ++ unhappy]]}
   end
 
   defp happy_path(a, [], _u), do: a
   defp happy_path(a, [b | xs], u), do: happy_path(a, b, xs, u)
 
-  # create a cond expression from a to b and continue with rest expressions
-  defp happy_path(a = {:=, _, [_, _]}, b, xs, u) do
+  # create a case expression from a to b and continue with rest expressions
+  defp happy_path(a = {:=, _, [p, e]}, b, xs, u) do
     quote do
-      cond do
-        unquote(a) -> unquote(b)
+      case(unquote(e)) do
+        unquote(p) -> unquote(b)
       end
-    end |> happy_cond |> happy_path(xs, u)
+    end |> happy_form |> happy_path(xs, u)
   end
 
-  # create another nested cond when another pattern matching found in chain
-  defp happy_path(a = {:cond, [happy: true], _}, b = {:=, _, [_, _]}, xs, u) do
+  # create another nested case when another pattern matching found in chain
+  defp happy_path(a = {:case, [happy: true], _}, b = {:=, _, [_, _]}, xs, u) do
     happy_path(a, [happy_path(b, xs, u)], u)
   end
 
-  # append `b` expression to current block cond(p -> ax)
-  defp happy_path({:cond, [happy: true],
-                    [[do: [{:->, _, [[pat], {:__block__, _, ax}]}]]]},
+  # append `b` expression to current block case(p -> ax)
+  defp happy_path({:case, [happy: true],
+                    [e, [do: [{:->, _, [[p], {:__block__, _, ax}]}]]]},
       b, xs, u) do
     quote do
-      cond do
-        unquote(pat) ->
+      case(unquote(e)) do
+        unquote(p) ->
           unquote_splicing(ax)
           unquote(b)
       end
-    end |> happy_cond |> happy_path(xs, u)
+    end |> happy_form |> happy_path(xs, u)
   end
 
-  # create a block by appending `b` expression to current cond(p -> a)
-  defp happy_path({:cond, [happy: true], [[do: [{:->, _, [[pat], a]}]]]},
+  # create a block by appending `b` expression to current case(p -> a)
+  defp happy_path({:case, [happy: true], [e, [do: [{:->, _, [[p], a]}]]]},
       b, xs, u) do
     quote do
-      cond do
-        unquote(pat) ->
+      case(unquote(e)) do
+        unquote(p) ->
            unquote(a)
            unquote(b)
       end
-    end |> happy_cond |> happy_path(xs, u)
+    end |> happy_form |> happy_path(xs, u)
   end
 
   # create a block with `a` and `b` and continue with chain
@@ -91,9 +91,9 @@ defmodule Happy do
     end |> happy_path(xs, u)
   end
 
-  # mark a cond form with happy metadata
-  defp happy_cond({:cond, m, n}) do
-    {:cond, [happy: true] ++ m, n}
+  # mark a form with happy metadata
+  defp happy_form({x, m, y}) do
+    {x, [happy: true] ++ m, y}
   end
 
   # is the given form a pattern match?

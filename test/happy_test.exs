@@ -86,23 +86,23 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "block with match and expr expands to cond" do
+  test "block with match and expr expands to case" do
     a = quote do
       happy do
         foo = bar
-        foo
+        foo + 1
       end
     end
     b = quote do
-      cond do
-        foo = bar -> foo
-        :else -> :error
+      case(bar) do
+        foo -> foo + 1
+        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
   end
 
-  test "block with match and two exprs expands to cond" do
+  test "block with match and two exprs expands to case" do
     a = quote do
       happy do
         foo = bar
@@ -111,16 +111,17 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      cond do
-        foo = bar -> baz
+      case(bar) do
+        foo ->
+          baz
           bat
-        :else -> :error
+        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
   end
 
-  test "block with match and three exprs expands to cond" do
+  test "block with match and three exprs expands to case" do
     a = quote do
       happy do
         foo = bar
@@ -130,17 +131,18 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      cond do
-        foo = bar -> baz
+      case(bar) do
+        foo ->
+          baz
           bat
           moo
-        :else -> :error
+        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
   end
 
-  test "block with match exprs and other match expands to nested cond" do
+  test "block with match exprs and other match expands to nested case" do
     a = quote do
       happy do
         foo = bar
@@ -150,13 +152,14 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      cond do
-        foo = bar -> baz
-          cond do
-            bat = man -> moo
-            :else -> :error
+      case(bar) do
+        foo ->
+          baz
+          case(man) do
+            bat -> moo
+            x -> x
           end
-        :else -> :error
+        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
@@ -176,18 +179,18 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "happy with else block, match and expr expands to cond" do
+  test "happy with else block, match and expr expands to case" do
     a = quote do
       happy do
         foo = bar
-        foo
+        foo + 1
       else
         :unhappy -> bar
       end
     end
     b = quote do
-      cond do
-        foo = bar -> foo
+      case(bar) do
+        foo -> foo + 1
         :unhappy -> bar
       end
     end
