@@ -62,7 +62,8 @@ end
 ```
 
 If you want to handle non-matching values,
-provide use an `else` block:
+provide an `else` block with additional
+matching clauses:
 
 ```elixir
 happy do
