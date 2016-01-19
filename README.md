@@ -1,6 +1,6 @@
 # Happy
 
-the alchemist [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
+the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
 - [Installation](#installation)
 - [About](#about)
@@ -67,7 +67,7 @@ provide use an `else` block:
 ```elixir
 happy do
   {:ok, b} = a
-  x(b)
+  c(b)
 else
   x -> x
 end
@@ -77,7 +77,7 @@ gets rewritten to:
 
 ```elixir
 case(a) do
-  {:ok, b} -> x(b)
+  {:ok, b} -> c(b)
   x -> x
 end
 ```
@@ -88,17 +88,20 @@ end
 ```elixir
 happy do
   # happy path
-  %Ecto.Changeset{valid?: true} = User.changeset(params)
-  {:ok, user} = Repo.insert
+
+  ch = %{valid?: true} = User.changeset(params)
+  {:ok, user} = Repo.insert(ch)
   render(conn, "user.json", user: user)
+
 else
   # unhappy path
-  invalid = %Ecto.Changeset{valid?: false} ->
-    conn |> put_status(500) |> text("invalid changeset")
-  {:error, changeset = %Changeset{}} ->
-    conn |> put_status(500) |> text("could not insert")
+
+  invalid = %Changeset{valid?: false} ->
+    render(conn, "form.json", changeset: invalid)
+  {:error, ch} ->
+    text(conn, "could not insert")
   _ ->
-    conn |> put_status(500) |> text("error")
+    text(conn, "error")
 end
 ```
 
