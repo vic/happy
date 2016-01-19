@@ -192,4 +192,19 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "happy block with multiple pattern matching" do
+    a = quote do
+      happy do
+        c = b = a
+        e
+      end
+    end
+    b = quote do
+      case(a) do
+        c = b -> e
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end

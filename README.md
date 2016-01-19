@@ -14,7 +14,7 @@ the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elix
 
 ```elixir
   def deps do
-    [{:happy, "~> 0.0.4"}]
+    [{:happy, "~> 0.0.5"}]
   end
 ```
 
@@ -88,21 +88,17 @@ end
 
 ```elixir
 happy do
-  # happy path
 
-  ch = %{valid?: true} = User.changeset(params)
+  %{valid?: true} = ch = User.changeset(params)
   {:ok, user} = Repo.insert(ch)
   render(conn, "user.json", user: user)
 
 else
-  # unhappy path
 
-  invalid = %Changeset{valid?: false} ->
-    render(conn, "form.json", changeset: invalid)
-  {:error, ch} ->
-    text(conn, "could not insert")
-  _ ->
-    text(conn, "error")
+  %{valid?: false} = ch -> render(conn, "invalid_input.html", ch: ch)
+  {:error, ch} -> render(conn, "didnt_insert.html", ch: ch)
+  _ -> text(conn, "error")
+
 end
 ```
 

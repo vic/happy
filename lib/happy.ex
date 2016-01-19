@@ -41,7 +41,8 @@ defmodule Happy do
   defp happy_path(a, [b | xs], u), do: happy_path(a, b, xs, u)
 
   # create a case expression from a to b and continue with rest expressions
-  defp happy_path(a = {:=, _, [p, e]}, b, xs, u) do
+  defp happy_path(a = {:=, _, _}, b, xs, u) do
+    {e, p} = pattern_match(a)
     quote do
       case(unquote(e)) do
         unquote(p) -> unquote(b)
@@ -50,7 +51,7 @@ defmodule Happy do
   end
 
   # create another nested case when another pattern matching found in chain
-  defp happy_path(a = {:case, [happy: true], _}, b = {:=, _, [_, _]}, xs, u) do
+  defp happy_path(a = {:case, [happy: true], _}, b = {:=, _, _}, xs, u) do
     happy_path(a, [happy_path(b, xs, u)], u)
   end
 
@@ -95,6 +96,13 @@ defmodule Happy do
   # is the given form a pattern match?
   defp pattern_match?({:=, _, [_, _]}), do: true
   defp pattern_match?(_), do: false
+
+
+  # a = b = c
+  defp pattern_match({:=, l, [a, {:=, m, [b, c]}]}) do
+    pattern_match({:=, l, [{:=, m, [a, b]}, c]})
+  end
+  defp pattern_match({:=, _, [a, b]}), do: {b, a}
 
 
 end
