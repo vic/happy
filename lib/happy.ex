@@ -4,10 +4,6 @@ defmodule Happy do
   Happy path programming in elixir.
   """
 
-  @unhappy (quote do
-    x -> x
-  end)
-
   # happy block with at least two expressions
   # using custom unhappy path
   @doc false
@@ -25,7 +21,7 @@ defmodule Happy do
   @doc false
   defmacro happy([do: block = {:__block__, _, xs = [a, b | c]}]) do
     if Enum.any?(xs, &pattern_match?/1) do
-      happy_path(a, b, c, @unhappy)
+      happy_path(a, b, c, [])
     else
       block
     end

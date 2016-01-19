@@ -96,7 +96,6 @@ defmodule HappyTest do
     b = quote do
       case(bar) do
         foo -> foo + 1
-        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
@@ -115,7 +114,6 @@ defmodule HappyTest do
         foo ->
           baz
           bat
-        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
@@ -136,7 +134,6 @@ defmodule HappyTest do
           baz
           bat
           moo
-        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
@@ -157,9 +154,7 @@ defmodule HappyTest do
           baz
           case(man) do
             bat -> moo
-            x -> x
           end
-        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
