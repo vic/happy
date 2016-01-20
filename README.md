@@ -38,12 +38,12 @@ following goals in mind:
 import Happy
 ```
 
-###### the `happy` macro
+###### the `happy_path` macro
 
-The `happy` macro takes a `do` block and rewrites any first-level pattern matching expression into a `case`.
+The `happy_path` macro takes a `do` block and rewrites any first-level pattern matching expression into a `case`.
 
 ```elixir
-happy do
+happy_path do
   {:ok, b} = a
   {:ok, d} = b
   c(d)
@@ -66,7 +66,7 @@ provide an `else` block with additional
 matching clauses:
 
 ```elixir
-happy do
+happy_path do
   {:ok, b} = a
   c(b)
 else
@@ -87,7 +87,7 @@ end
 ###### Example usage in a web application creating a user
 
 ```elixir
-happy do
+happy_path do
 
   %{valid?: true} = ch = User.changeset(params)
   {:ok, user} = Repo.insert(ch)
