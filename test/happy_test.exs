@@ -226,4 +226,19 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "happy with guard" do
+    a = quote do
+      happy_path do
+        b when is_nil(a) = a
+        b
+      end
+    end
+    b = quote do
+      case(a) do
+        b when is_nil(a) -> b
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end

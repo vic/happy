@@ -56,6 +56,15 @@ defmodule Happy do
     end |> happy_form |> make_happy(xs, u)
   end
 
+  #
+  defp make_happy({:when, _, [p, {:=, _, [w, e]}]}, b, xs, u) do
+    quote do
+      case(unquote(e)) do
+        unquote(p) when unquote(w) -> unquote(b)
+      end
+    end |> happy_form |> make_happy(xs, u)
+  end
+
   # create another nested case when another pattern matching found in chain
   defp make_happy(a = {:case, [happy_path: true], _}, b = {:=, _, _}, xs, u) do
     make_happy(a,  [make_happy(b, xs, u)], u)
@@ -100,6 +109,7 @@ defmodule Happy do
   end
 
   # is the given form a pattern match?
+  defp pattern_match?({:when, _, [_, {:=, _, [_, _]}]}), do: true
   defp pattern_match?({:=, _, [_, _]}), do: true
   defp pattern_match?(_), do: false
 

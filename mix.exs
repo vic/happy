@@ -3,7 +3,7 @@ defmodule Happy.Mixfile do
 
   def project do
     [app: :happy,
-     version: "1.0.1",
+     version: "1.0.2",
      elixir: "~> 1.0",
      description: description,
      package: package,
