@@ -1,4 +1,4 @@
-# Happy ![](https://travis-ci.org/vic/happy.svg?branch=master)
+# Happy <a href="https://travis-ci.org/vic/happy"><img src="https://travis-ci.org/vic/happy.svg"></a>
 
 the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
