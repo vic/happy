@@ -207,4 +207,23 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "two consecutive match expressions compile to nested case" do
+    a = quote do
+      happy_path do
+        b = a
+        c = b
+        d
+      end
+    end
+    b = quote do
+      case(a) do
+        b ->
+          case(b) do
+            c -> d
+          end
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end

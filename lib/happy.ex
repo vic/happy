@@ -10,7 +10,7 @@ defmodule Happy do
   defmacro happy_path([do: block = {:__block__, _, xs = [a, b | c]},
                   else: unhappy]) do
     if Enum.any?(xs, &pattern_match?/1) do
-      happy(a, b, c, unhappy)
+      make_happy(a, b, c, unhappy)
     else
       block
     end
@@ -21,7 +21,7 @@ defmodule Happy do
   @doc false
   defmacro happy_path([do: block = {:__block__, _, xs = [a, b | c]}]) do
     if Enum.any?(xs, &pattern_match?/1) do
-      happy(a, b, c, [])
+      make_happy(a, b, c, [])
     else
       block
     end
@@ -33,30 +33,36 @@ defmodule Happy do
   defmacro happy_path([do: expr]), do: expr
 
   # append unhappy path to case when no more expressions remain
-  defp happy({:case, m = [happy_path: true], [e, [do: xs]]}, [], unhappy) do
+  defp make_happy({:case, m = [happy_path: true], [e, [do: xs]]}, [], unhappy) do
     {:case, m, [e, [do: xs ++ unhappy]]}
   end
 
-  defp happy(a, [], _u), do: a
-  defp happy(a, [b | xs], u), do: happy(a, b, xs, u)
+  defp make_happy(a, [], _u), do: a
+  defp make_happy(a, [b | xs], u), do: make_happy(a, b, xs, u)
+
+
+  # create nested case expression when two consecutive match found
+  defp make_happy(a = {:=, _, _}, b = {:=, _, _}, xs = [_ | _], u) do
+    make_happy(a,  [make_happy(b, xs, u)], u)
+  end
 
   # create a case expression from a to b and continue with rest expressions
-  defp happy(a = {:=, _, _}, b, xs, u) do
+  defp make_happy(a = {:=, _, _}, b, xs, u) do
     {e, p} = pattern_match(a)
     quote do
       case(unquote(e)) do
         unquote(p) -> unquote(b)
       end
-    end |> happy_form |> happy(xs, u)
+    end |> happy_form |> make_happy(xs, u)
   end
 
   # create another nested case when another pattern matching found in chain
-  defp happy(a = {:case, [happy_path: true], _}, b = {:=, _, _}, xs, u) do
-    happy(a,  [happy(b, xs, u)], u)
+  defp make_happy(a = {:case, [happy_path: true], _}, b = {:=, _, _}, xs, u) do
+    make_happy(a,  [make_happy(b, xs, u)], u)
   end
 
   # append `b` expression to current block case(p -> ax)
-  defp happy({:case, [happy_path: true],
+  defp make_happy({:case, [happy_path: true],
                     [e, [do: [{:->, _, [[p], {:__block__, _, ax}]}]]]},
       b, xs, u) do
     quote do
@@ -65,11 +71,11 @@ defmodule Happy do
           unquote_splicing(ax)
           unquote(b)
       end
-    end |> happy_form |> happy(xs, u)
+    end |> happy_form |> make_happy(xs, u)
   end
 
   # create a block by appending `b` expression to current case(p -> a)
-  defp happy({:case, [happy_path: true], [e, [do: [{:->, _, [[p], a]}]]]},
+  defp make_happy({:case, [happy_path: true], [e, [do: [{:->, _, [[p], a]}]]]},
       b, xs, u) do
     quote do
       case(unquote(e)) do
@@ -77,15 +83,15 @@ defmodule Happy do
            unquote(a)
            unquote(b)
       end
-    end |> happy_form |> happy(xs, u)
+    end |> happy_form |> make_happy(xs, u)
   end
 
   # create a block with `a` and `b` and continue with chain
-  defp happy(a, b, xs, u) do
+  defp make_happy(a, b, xs, u) do
     quote do
       unquote(a)
       unquote(b)
-    end |> happy(xs, u)
+    end |> make_happy(xs, u)
   end
 
   # mark a form with happy metadata
