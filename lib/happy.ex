@@ -114,11 +114,17 @@ defmodule Happy do
   defp pattern_match?(_), do: false
 
 
+  # a in b = c
+  defp pattern_match({:=, _, [{:in, _, [p, t]}, e]}) do
+    {{t,e}, {t,p}}
+  end
+
   # a = b = c
   defp pattern_match({:=, l, [a, {:=, m, [b, c]}]}) do
     pattern_match({:=, l, [{:=, m, [a, b]}, c]})
   end
-  defp pattern_match({:=, _, [a, b]}), do: {b, a}
+
+  defp pattern_match({:=, _, [p, e]}), do: {e, p}
 
 
 end

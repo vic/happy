@@ -241,4 +241,18 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "happy in match" do
+    a = quote do
+      happy_path do
+        b in :t = a
+        c
+      end
+    end
+    b = quote do
+      case({:t, a}) do
+        {:t, b} -> c
+      end
+    end
+    assert_expands_to a, b, __ENV__
+  end
 end
