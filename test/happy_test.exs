@@ -7,7 +7,7 @@ defmodule HappyTest do
 
   test "empty block expands to itself" do
     a = quote do
-      happy do
+      happy_path do
       end
     end
     b = quote do
@@ -17,7 +17,7 @@ defmodule HappyTest do
 
   test "single block expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         foo
       end
     end
@@ -29,7 +29,7 @@ defmodule HappyTest do
 
   test "block without matches expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         foo
         bar
       end
@@ -43,7 +43,7 @@ defmodule HappyTest do
 
   test "block with single match expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
       end
     end
@@ -55,7 +55,7 @@ defmodule HappyTest do
 
   test "block with expr and match expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         baz
         foo = baz
       end
@@ -70,7 +70,7 @@ defmodule HappyTest do
 
   test "block with elixir cond expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         cond do
           true -> nil
         end
@@ -88,7 +88,7 @@ defmodule HappyTest do
 
   test "block with match and expr expands to case" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
         foo + 1
       end
@@ -103,7 +103,7 @@ defmodule HappyTest do
 
   test "block with match and two exprs expands to case" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
         baz
         bat
@@ -121,7 +121,7 @@ defmodule HappyTest do
 
   test "block with match and three exprs expands to case" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
         baz
         bat
@@ -141,7 +141,7 @@ defmodule HappyTest do
 
   test "block with match exprs and other match expands to nested case" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
         baz
         bat = man
@@ -162,7 +162,7 @@ defmodule HappyTest do
 
   test "single block with else expands to itself" do
     a = quote do
-      happy do
+      happy_path do
         foo
       else
         :true -> :unhappy
@@ -176,7 +176,7 @@ defmodule HappyTest do
 
   test "happy with else block, match and expr expands to case" do
     a = quote do
-      happy do
+      happy_path do
         foo = bar
         foo + 1
       else
@@ -194,7 +194,7 @@ defmodule HappyTest do
 
   test "happy block with multiple pattern matching" do
     a = quote do
-      happy do
+      happy_path do
         c = b = a
         e
       end
