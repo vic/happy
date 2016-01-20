@@ -48,22 +48,20 @@ defmodule Happy do
 
   # create a case expression from a to b and continue with rest expressions
   defp make_happy(a = {:=, _, _}, b, xs, u) do
-    {e, p} = pattern_match(a)
-    quote do
-      case(unquote(e)) do
-        unquote(p) -> unquote(b)
-      end
-    end |> happy_form |> make_happy(xs, u)
+    happy_case(a, b, xs, u)
+  end
+
+  defp make_happy(a = {:@, _, [{_, _, [{:=, _, _}]}]}, b, xs, u) do
+    happy_case(a, b, xs, u)
+  end
+
+  defp make_happy(a = {:@, _, [{_, _, [{:when, _, _}]}]}, b, xs, u) do
+    happy_case(a, b, xs, u)
   end
 
   #
-  defp make_happy(w = {:when, _, [_, {:=, _, _}]}, b, xs, u) do
-    {e, p} = pattern_match(w)
-    quote do
-      case(unquote(e)) do
-        unquote(p) -> unquote(b)
-      end
-    end |> happy_form |> make_happy(xs, u)
+  defp make_happy(a = {:when, _, [_, {:=, _, _}]}, b, xs, u) do
+    happy_case(a, b, xs, u)
   end
 
   # create another nested case when another pattern matching found in chain
@@ -75,25 +73,13 @@ defmodule Happy do
   defp make_happy({:case, [happy_path: true],
                     [e, [do: [{:->, _, [[p], {:__block__, _, ax}]}]]]},
       b, xs, u) do
-    quote do
-      case(unquote(e)) do
-        unquote(p) ->
-          unquote_splicing(ax)
-          unquote(b)
-      end
-    end |> happy_form |> make_happy(xs, u)
+    happy_append(e, p, ax, b, xs, u)
   end
 
   # create a block by appending `b` expression to current case(p -> a)
   defp make_happy({:case, [happy_path: true], [e, [do: [{:->, _, [[p], a]}]]]},
       b, xs, u) do
-    quote do
-      case(unquote(e)) do
-        unquote(p) ->
-           unquote(a)
-           unquote(b)
-      end
-    end |> happy_form |> make_happy(xs, u)
+    happy_append(e, p, [a], b, xs, u)
   end
 
   # create a block with `a` and `b` and continue with chain
@@ -104,29 +90,52 @@ defmodule Happy do
     end |> make_happy(xs, u)
   end
 
+  # create a happy case
+  defp happy_case(a, b, xs, u) do
+    {e, p} = pattern_match(a)
+    quote do
+      case(unquote(e)) do
+        unquote(p) -> unquote(b)
+      end
+    end |> happy_form |> make_happy(xs, u)
+  end
+
+  defp happy_append(e, p, ax, b, xs, u) do
+    quote do
+      case(unquote(e)) do
+        unquote(p) ->
+          unquote_splicing(ax)
+          unquote(b)
+      end
+    end |> happy_form |> make_happy(xs, u)
+  end
+
   # mark a form with happy metadata
   defp happy_form({x, m, y}) do
     {x, [happy_path: true] ++ m, y}
   end
 
   # is the given form a pattern match?
+  defp pattern_match?({:@, _, [{_, _, [{:=, _, [_, _]}]}]}), do: true
+  defp pattern_match?({:@, _, [{_, _, [{:when, _, _}]}]}), do: true
   defp pattern_match?({:when, _, [_, {:=, _, [_, _]}]}), do: true
   defp pattern_match?({:=, _, [_, _]}), do: true
   defp pattern_match?(_), do: false
 
-  # :t in a when b = c
-  defp pattern_match({:when, l, [{:in, _, [t, p]}, {:=, _, [w, e]}]}) do
-    {{t,e}, {:when, l, [{t,p}, w]}}
+  defp pattern_match({:@, _, [{t, _, [x = {:when, _, _}]}]}) do
+    {e, {:when, l, [p, w]}} = pattern_match(x)
+    {{t, e}, {:when, l, [{t,p}, w]}}
+  end
+
+  defp pattern_match({:@, _, [{t, _, [x = {:=, _, _}]}]}) do
+    {e, p} = pattern_match(x)
+    {{t, e}, {t, p}}
   end
 
   # a when b = c
-  defp pattern_match({:when, l, [p, {:=, _, [w, e]}]}) do
+  defp pattern_match({:when, l, [p, eq = {:=, _, _}]}) do
+    {e, w} = pattern_match(eq)
     {e, {:when, l, [p, w]}}
-  end
-
-  # a in b = c
-  defp pattern_match({:=, _, [{:in, _, [t, p]}, e]}) do
-    {{t,e}, {t,p}}
   end
 
   # a = b = c

@@ -241,10 +241,10 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "happy in match" do
+  test "happy at match" do
     a = quote do
       happy_path do
-        :t in b = a
+        @t b = a
         c
       end
     end
@@ -256,10 +256,10 @@ defmodule HappyTest do
     assert_expands_to a, b, __ENV__
   end
 
-  test "happy in when match" do
+  test "happy at when match" do
     a = quote do
       happy_path do
-        :t in b when w = a
+        @t b when w = a
         c
       end
     end
