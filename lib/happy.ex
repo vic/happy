@@ -57,10 +57,11 @@ defmodule Happy do
   end
 
   #
-  defp make_happy({:when, _, [p, {:=, _, [w, e]}]}, b, xs, u) do
+  defp make_happy(w = {:when, _, [_, {:=, _, _}]}, b, xs, u) do
+    {e, p} = pattern_match(w)
     quote do
       case(unquote(e)) do
-        unquote(p) when unquote(w) -> unquote(b)
+        unquote(p) -> unquote(b)
       end
     end |> happy_form |> make_happy(xs, u)
   end
@@ -113,9 +114,18 @@ defmodule Happy do
   defp pattern_match?({:=, _, [_, _]}), do: true
   defp pattern_match?(_), do: false
 
+  # :t in a when b = c
+  defp pattern_match({:when, l, [{:in, _, [t, p]}, {:=, _, [w, e]}]}) do
+    {{t,e}, {:when, l, [{t,p}, w]}}
+  end
+
+  # a when b = c
+  defp pattern_match({:when, l, [p, {:=, _, [w, e]}]}) do
+    {e, {:when, l, [p, w]}}
+  end
 
   # a in b = c
-  defp pattern_match({:=, _, [{:in, _, [p, t]}, e]}) do
+  defp pattern_match({:=, _, [{:in, _, [t, p]}, e]}) do
     {{t,e}, {t,p}}
   end
 
