@@ -4,26 +4,40 @@ defmodule Happy do
   Happy path programming in elixir.
   """
 
-  @unhappy (quote do
+  @happy (quote do
              {:happy, x} -> x
            end)
 
-  defmacro happy_path([do: path = {:__block__, _, _}]) do
-    make_happy(path, [])
-  end
+  @default (quote do
+             x -> x
+            end)
 
+
+  defmacro happy_path!([do: path = {:__block__, _, _}]) do
+    make_happy(path, @happy)
+  end
+  defmacro happy_path!([do: x]), do: x
+
+  defmacro happy_path!([do: path = {:__block__, _, _},
+                        else: unhappy = [{:->, _, _} | _]]) do
+    make_happy(path, @happy ++ unhappy)
+  end
+  defmacro happy_path!([do: x, else: [{:->, _, _} | _]]), do: x
+
+  defmacro happy_path([do: path = {:__block__, _, _}]) do
+    make_happy(path, @happy ++ @default)
+  end
   defmacro happy_path([do: x]), do: x
 
   defmacro happy_path([do: path = {:__block__, _, _},
                         else: unhappy = [{:->, _, _} | _]]) do
-    make_happy(path, unhappy)
+    make_happy(path, @happy ++ unhappy)
   end
-
   defmacro happy_path([do: x, else: [{:->, _, _} | _]]), do: x
 
   defp make_happy({:__block__, l, path}, unhappy) do
     if can_be_happier?(path) do
-      happier(path) |> unhappy_path(@unhappy ++ unhappy)
+      happier(path) |> unhappy_path(unhappy)
     else
       {:__block__, l, path}
     end

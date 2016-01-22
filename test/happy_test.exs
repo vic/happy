@@ -21,6 +21,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -124,6 +125,7 @@ defmodule HappyTest do
           end
       )|> case do
             {:happy, x} -> x
+            x -> x
           end
     end
     assert_expands_to a, b, __ENV__
@@ -144,6 +146,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -167,6 +170,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -192,6 +196,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -219,6 +224,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -274,6 +280,7 @@ defmodule HappyTest do
         x -> x
       end |> case do
         {:happy, x} -> x
+        x -> x
       end
     end
     assert_expands_to a, b, __ENV__
@@ -288,16 +295,20 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      a |> case do
-             b ->
-               b |> case do
-                      c -> {:happy, d}
-                      x -> x
-                    end
-             x -> x
-           end |> case do
-                    {:happy, x} -> x
-                  end
+      a
+      |> case do
+           b ->
+             b
+             |> case do
+                  c -> {:happy, d}
+                  x -> x
+                end
+           x -> x
+         end
+      |> case do
+           {:happy, x} -> x
+           x -> x
+         end
     end
     assert_expands_to a, b, __ENV__
   end
@@ -310,12 +321,15 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      a |> case do
-             b when is_nil(a) -> {:happy, c}
-             x -> x
-           end |> case do
-                    {:happy, x} -> x
-                  end
+      a
+      |> case do
+           b when is_nil(a) -> {:happy, c}
+           x -> x
+         end
+      |> case do
+           {:happy, x} -> x
+           x -> x
+         end
     end
     assert_expands_to a, b, __ENV__
   end
@@ -328,12 +342,15 @@ defmodule HappyTest do
       end
     end
     b = quote do
-      {:t, a} |> case do
-        {:t, b} -> {:happy, c}
-        x -> x
-      end |> case do
-        {:happy, x} -> x
-      end
+      {:t, a}
+      |> case do
+           {:t, b} -> {:happy, c}
+           x -> x
+         end
+      |> case do
+           {:happy, x} -> x
+           x -> x
+         end
     end
     assert_expands_to a, b, __ENV__
   end
@@ -356,6 +373,7 @@ defmodule HappyTest do
            end
       )|> case do
             {:happy, x} -> x
+            x -> x
           end
     end
     assert_expands_to a, b, __ENV__
@@ -382,6 +400,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
@@ -402,6 +421,7 @@ defmodule HappyTest do
          end
       |> case do
            {:happy, x} -> x
+           x -> x
          end
     end
     assert_expands_to a, b, __ENV__
