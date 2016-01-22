@@ -4,146 +4,117 @@ defmodule Happy do
   Happy path programming in elixir.
   """
 
-  # happy block with at least two expressions
-  # using custom unhappy path
-  @doc false
-  defmacro happy_path([do: block = {:__block__, _, xs = [a, b | c]},
-                  else: unhappy]) do
-    if Enum.any?(xs, &pattern_match?/1) do
-      make_happy(a, b, c, unhappy)
+  @unhappy (quote do
+             {:happy, x} -> x
+           end)
+
+  defmacro happy_path([do: path = {:__block__, _, _}]) do
+    make_happy(path, [])
+  end
+
+  defmacro happy_path([do: x]), do: x
+
+  defmacro happy_path([do: path = {:__block__, _, _},
+                        else: unhappy = [{:->, _, _} | _]]) do
+    make_happy(path, unhappy)
+  end
+
+  defmacro happy_path([do: x, else: [{:->, _, _} | _]]), do: x
+
+  defp make_happy({:__block__, l, path}, unhappy) do
+    if can_be_happier?(path) do
+      happier(path) |> unhappy_path(@unhappy ++ unhappy)
     else
-      block
+      {:__block__, l, path}
     end
   end
 
-  # happy block with at least two expressions
-  # using default unhappy path
-  @doc false
-  defmacro happy_path([do: block = {:__block__, _, xs = [a, b | c]}]) do
-    if Enum.any?(xs, &pattern_match?/1) do
-      make_happy(a, b, c, [])
-    else
-      block
+  defp can_be_happier?(xs) do
+    Enum.any?(xs, &happy_match?/1)
+  end
+
+  defp happier(xs) do
+    xs
+    |> Stream.map(&happy_match/1)
+    |> Enum.reverse
+    |> Enum.reduce(nil, &happy_expand/2)
+  end
+
+  defp happy_match?(expr) do
+    case happy_match(expr) do
+      {^expr} -> false
+      _ -> true
     end
   end
 
-  @doc false
-  defmacro happy_path([do: expr, else: _]), do: expr
-  @doc false
-  defmacro happy_path([do: expr]), do: expr
-
-  # append unhappy path to case when no more expressions remain
-  defp make_happy({:case, m = [happy_path: true], [e, [do: xs]]}, [], unhappy) do
-    {:case, m, [e, [do: xs ++ unhappy]]}
+  defp happy_match({:@, _, [{tag, _, [b = {:when, _, _}]}]}) do
+    {{:when, _, [a, w]}, e} = happy_match(b)
+    {{:when, [], [{tag, a}, w]}, {tag, e}}
   end
 
-  defp make_happy(a, [], _u), do: a
-  defp make_happy(a, [b | xs], u), do: make_happy(a, b, xs, u)
-
-
-  # create nested case expression when two consecutive match found
-  defp make_happy(a = {:=, _, _}, b = {:=, _, _}, xs = [_ | _], u) do
-    make_happy(a,  [make_happy(b, xs, u)], u)
+  defp happy_match({:@, _, [{tag, _, [b]}]}) do
+    {p, e} = happy_match(b)
+    {{tag, p}, {tag, e}}
   end
 
-  # create a case expression from a to b and continue with rest expressions
-  defp make_happy(a = {:=, _, _}, b, xs, u) do
-    happy_case(a, b, xs, u)
+  defp happy_match({:when, _, [a, b]}) do
+    {w, e} = happy_match(b)
+    {{:when, [], [a, w]}, e}
   end
 
-  defp make_happy(a = {:@, _, [{_, _, [{:=, _, _}]}]}, b, xs, u) do
-    happy_case(a, b, xs, u)
+  defp happy_match({:=, _, [a, b = {:=, _, _}]}) do
+    {p, e} = happy_match(b)
+    {{:=, [], [a, p]}, e}
   end
 
-  defp make_happy(a = {:@, _, [{_, _, [{:when, _, _}]}]}, b, xs, u) do
-    happy_case(a, b, xs, u)
+  defp happy_match({:=, _, [pattern, expression]}) do
+    {pattern, expression}
   end
 
-  #
-  defp make_happy(a = {:when, _, [_, {:=, _, _}]}, b, xs, u) do
-    happy_case(a, b, xs, u)
+  defp happy_match(expression), do: {expression}
+
+  defp happy_form({a, _, c}) do
+    {a, [happy: true], c}
   end
 
-  # create another nested case when another pattern matching found in chain
-  defp make_happy(a = {:case, [happy_path: true], _}, b = {:=, _, _}, xs, u) do
-    make_happy(a,  [make_happy(b, xs, u)], u)
+  defp happy_expand({pattern, expression}, nil) do
+    {:=, [], [pattern, expression]}
   end
 
-  # append `b` expression to current block case(p -> ax)
-  defp make_happy({:case, [happy_path: true],
-                    [e, [do: [{:->, _, [[p], {:__block__, _, ax}]}]]]},
-      b, xs, u) do
-    happy_append(e, p, ax, b, xs, u)
-  end
-
-  # create a block by appending `b` expression to current case(p -> a)
-  defp make_happy({:case, [happy_path: true], [e, [do: [{:->, _, [[p], a]}]]]},
-      b, xs, u) do
-    happy_append(e, p, [a], b, xs, u)
-  end
-
-  # create a block with `a` and `b` and continue with chain
-  defp make_happy(a, b, xs, u) do
+  defp happy_expand({pattern, expression}, v) do
     quote do
-      unquote(a)
-      unquote(b)
-    end |> make_happy(xs, u)
-  end
-
-  # create a happy case
-  defp happy_case(a, b, xs, u) do
-    {e, p} = pattern_match(a)
-    quote do
-      case(unquote(e)) do
-        unquote(p) -> unquote(b)
+      unquote(expression) |> case do
+        unquote(pattern) -> unquote(v)
+        x -> x
       end
-    end |> happy_form |> make_happy(xs, u)
+    end |> happy_form
   end
 
-  defp happy_append(e, p, ax, b, xs, u) do
-    quote do
-      case(unquote(e)) do
-        unquote(p) ->
-          unquote_splicing(ax)
-          unquote(b)
-      end
-    end |> happy_form |> make_happy(xs, u)
+  defp happy_expand({final_expression}, nil) do
+    {:happy, final_expression}
   end
 
-  # mark a form with happy metadata
-  defp happy_form({x, m, y}) do
-    {x, [happy_path: true] ++ m, y}
+  defp happy_expand({a}, {:__block__, m, b}) do
+    {:__block__, m, [a] ++ b}
   end
 
-  # is the given form a pattern match?
-  defp pattern_match?({:@, _, [{_, _, [{:=, _, [_, _]}]}]}), do: true
-  defp pattern_match?({:@, _, [{_, _, [{:when, _, _}]}]}), do: true
-  defp pattern_match?({:when, _, [_, {:=, _, [_, _]}]}), do: true
-  defp pattern_match?({:=, _, [_, _]}), do: true
-  defp pattern_match?(_), do: false
-
-  defp pattern_match({:@, _, [{t, _, [x = {:when, _, _}]}]}) do
-    {e, {:when, l, [p, w]}} = pattern_match(x)
-    {{t, e}, {:when, l, [{t,p}, w]}}
+  defp happy_expand({a}, b) do
+    block = {:__block__, [], [a, b]}
+    case b do
+      {_, [happy: true], _} -> block |> happy_form
+      _ -> block
+    end
   end
 
-  defp pattern_match({:@, _, [{t, _, [x = {:=, _, _}]}]}) do
-    {e, p} = pattern_match(x)
-    {{t, e}, {t, p}}
+  defp unhappy_path(happy = {_, [happy: true], _}, unhappy) do
+    {:|>, [], [happy, unhappy_case(unhappy)]}
   end
 
-  # a when b = c
-  defp pattern_match({:when, l, [p, eq = {:=, _, _}]}) do
-    {e, w} = pattern_match(eq)
-    {e, {:when, l, [p, w]}}
-  end
+  defp unhappy_path(x, _), do: x
 
-  # a = b = c
-  defp pattern_match({:=, l, [a, {:=, m, [b, c]}]}) do
-    pattern_match({:=, l, [{:=, m, [a, b]}, c]})
+  defp unhappy_case(unhappy_cases) do
+    {:case, [], [[do: unhappy_cases]]}
   end
-
-  defp pattern_match({:=, _, [p, e]}), do: {e, p}
 
 
 end

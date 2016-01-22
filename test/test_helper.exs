@@ -1,18 +1,15 @@
 ExUnit.start()
 
-defmodule Happy.Test do
+defmodule Happy.Assertions do
   use ExUnit.Case
 
   def assert_expands_to(a, b, env) do
-    as = Macro.to_string(a)
-    bs = Macro.to_string(b)
-
     x  = Macro.expand_once(a, env)
     xs = Macro.to_string(x)
-
+    bs = Macro.to_string(b)
     cond do
       xs == bs -> assert(a)
-      xs == as ->
+      :else ->
         flunk("""
         Expected
 
@@ -20,10 +17,12 @@ defmodule Happy.Test do
 
         to expand into
 
-        #{Macro.to_string(b)}
+        #{bs}
+
+        but was
+
+        #{xs}
         """)
-      :else ->
-        assert_expands_to(x, b, env)
     end
   end
 
