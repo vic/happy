@@ -1,10 +1,8 @@
-defmodule HappyTest do
+defmodule HappyPathTest do
   use ExUnit.Case
 
   import Happy.Assertions
   import Happy
-
-  doctest Happy
 
   test "match expr expands to case" do
     a = quote do
