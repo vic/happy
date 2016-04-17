@@ -1,4 +1,4 @@
-defmodule Happy.Path do
+defmodule Happy.HappyPath do
 
   @happy (quote do
              {:happy, x} -> x
@@ -8,31 +8,31 @@ defmodule Happy.Path do
              x -> x
             end)
 
-  defmacro __using__(:happy_path) do
+  defmacro __using__(nil) do
     quote do
 
       defmacro happy_path!([do: path = {:__block__, _, _}]) do
-        Happy.Path.happy_path!(path)
+        Happy.HappyPath.happy_path!(path)
       end
 
       defmacro happy_path!([do: x]), do: x
 
       defmacro happy_path!([do: path = {:__block__, _, _},
                              else: unhappy = [{:->, _, _} | _]]) do
-        Happy.Path.happy_path!(path, unhappy)
+        Happy.HappyPath.happy_path!(path, unhappy)
       end
 
       defmacro happy_path!([do: x, else: [{:->, _, _} | _]]), do: x
 
       defmacro happy_path([do: path = {:__block__, _, _}]) do
-        Happy.Path.happy_path(path)
+        Happy.HappyPath.happy_path(path)
       end
 
       defmacro happy_path([do: x]), do: x
 
       defmacro happy_path([do: path = {:__block__, _, _},
                             else: unhappy = [{:->, _, _} | _]]) do
-        Happy.Path.happy_path(path, unhappy)
+        Happy.HappyPath.happy_path(path, unhappy)
       end
 
       defmacro happy_path([do: x, else: [{:->, _, _} | _]]), do: x
