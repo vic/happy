@@ -11,7 +11,7 @@ defmodule HappyTest do
     {:ok, "sure"}
     |> happy({:ok, _})
     |> yeah
-    |> happy
+    |> happy_pipe
 
     assert x == "ok sure"
   end
@@ -21,7 +21,7 @@ defmodule HappyTest do
     {:error, "sure"}
     |> happy({:ok, _})
     |> yeah
-    |> happy
+    |> happy_pipe
     assert x == {:error, "sure"}
   end
 
@@ -30,8 +30,18 @@ defmodule HappyTest do
     {:ok, "sure"}
     |> unhappy({:ok, _})
     |> yeah
-    |> happy
+    |> happy_pipe
     assert x == {:ok, "sure"}
+  end
+
+
+  test "pass non matching value to alternative pipe" do
+    x =
+    {:error, "sure"}
+    |> happy({:ok, _}, nop)
+    |> yeah
+    |> happy_pipe
+    assert x == "nop #{inspect({:error, "sure"})}"
   end
 
 
