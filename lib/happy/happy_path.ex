@@ -8,51 +8,61 @@ defmodule Happy.HappyPath do
              x -> x
             end)
 
-  defmacro __using__(nil) do
+  defmacro __using__(name) do
     quote do
-
-      defmacro happy_path!([do: path = {:__block__, _, _}]) do
-        Happy.HappyPath.happy_path!(path)
+      defmacro unquote(String.to_atom("#{name}!"))(x) do
+        Happy.HappyPath.happy_macro!(x)
       end
-
-      defmacro happy_path!([do: x]), do: x
-
-      defmacro happy_path!([do: path = {:__block__, _, _},
-                             else: unhappy = [{:->, _, _} | _]]) do
-        Happy.HappyPath.happy_path!(path, unhappy)
+      defmacro unquote(name)(x) do
+        Happy.HappyPath.happy_macro(x)
       end
-
-      defmacro happy_path!([do: x, else: [{:->, _, _} | _]]), do: x
-
-      defmacro happy_path([do: path = {:__block__, _, _}]) do
-        Happy.HappyPath.happy_path(path)
-      end
-
-      defmacro happy_path([do: x]), do: x
-
-      defmacro happy_path([do: path = {:__block__, _, _},
-                            else: unhappy = [{:->, _, _} | _]]) do
-        Happy.HappyPath.happy_path(path, unhappy)
-      end
-
-      defmacro happy_path([do: x, else: [{:->, _, _} | _]]), do: x
     end
   end
 
+  #### macurosu
 
-  def happy_path!(path) do
+  def happy_macro!([do: path = {:__block__, _, _}]) do
+    happy_path!(path)
+  end
+
+  def happy_macro!([do: x]), do: x
+
+  def happy_macro!([do: path = {:__block__, _, _},
+                          else: unhappy = [{:->, _, _} | _]]) do
+    happy_path!(path, unhappy)
+  end
+
+  def happy_macro!([do: x, else: [{:->, _, _} | _]]), do: x
+
+  def happy_macro([do: path = {:__block__, _, _}]) do
+    happy_path(path)
+  end
+
+  def happy_macro([do: x]), do: x
+
+  def happy_macro([do: path = {:__block__, _, _},
+                         else: unhappy = [{:->, _, _} | _]]) do
+    happy_path(path, unhappy)
+  end
+
+  def happy_macro([do: x, else: [{:->, _, _} | _]]), do: x
+
+  ####
+
+
+  defp happy_path!(path) do
     make_happy(path, @happy)
   end
 
-  def happy_path!(path, unhappy) do
+  defp happy_path!(path, unhappy) do
     make_happy(path, @happy ++ unhappy)
   end
 
-  def happy_path(path) do
+  defp happy_path(path) do
     make_happy(path, @happy ++ @default)
   end
 
-  def happy_path(path, unhappy) do
+  defp happy_path(path, unhappy) do
     make_happy(path, @happy ++ unhappy)
   end
 
