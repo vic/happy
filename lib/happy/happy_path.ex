@@ -8,13 +8,24 @@ defmodule Happy.HappyPath do
              x -> x
             end)
 
-  defmacro __using__(name) do
+  defmacro __using__(_) do
     quote do
-      defmacro unquote(String.to_atom("#{name}!"))(x) do
-        Happy.HappyPath.happy_macro!(x)
+      defmacro happy_path!(opts) do
+        Happy.HappyPath.happy_macro!(opts)
       end
-      defmacro unquote(name)(x) do
-        Happy.HappyPath.happy_macro(x)
+
+      defmacro happy_path(opts) do
+        Happy.HappyPath.happy_macro(opts)
+      end
+
+      defmacro happy_path(opts, err_handler) do
+        Happy.HappyPath.happy_opts(opts, err_handler)
+        |> Happy.HappyPath.happy_macro
+      end
+
+      defmacro happy_path!(opts, err_handler) do
+        Happy.HappyPath.happy_opts(opts, err_handler)
+        |> Happy.HappyPath.happy_macro!
       end
     end
   end
@@ -46,6 +57,13 @@ defmodule Happy.HappyPath do
   end
 
   def happy_macro([do: x, else: [{:->, _, _} | _]]), do: x
+
+  def happy_opts(else_pipe, opts) do
+    else_clauses = Keyword.get(opts, :else, []) ++ quote do
+      x -> x |> unquote(else_pipe)
+    end
+    Keyword.delete(opts, :else) ++ [else: else_clauses]
+  end
 
   ####
 

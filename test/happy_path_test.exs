@@ -464,4 +464,49 @@ defmodule HappyPathTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "happy_path can take fallback error handler as first argument" do
+    a = quote do
+      happy_path handle do
+        {:ok, x} = a
+        x
+      else
+        {:error, y} -> y
+      end
+    end
+    b = quote do
+      a
+      |> case do
+           {:ok, x} -> {:happy, x}
+           x -> x
+         end
+      |> case do
+           {:happy, x} -> x
+           {:error, y} -> y
+           x -> x |> handle
+        end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "happy_path can take default error handler as first argument" do
+    a = quote do
+      happy_path! handle do
+        {:ok, x} = a
+        x
+      end
+    end
+    b = quote do
+      a
+      |> case do
+           {:ok, x} -> {:happy, x}
+           x -> x
+         end
+      |> case do
+          {:happy, x} -> x
+          x -> x |> handle
+        end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end
