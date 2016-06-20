@@ -98,25 +98,33 @@ defmodule Happy.HappyPath do
   end
 
   defp happy_match({:@, _, [{tag, _, [b]}]}) do
-    {p, e} = happy_match(b)
+    {p, e} = happy_match_eq(b)
     {{tag, p}, {tag, e}}
   end
 
   defp happy_match({:when, _, [a, b]}) do
-    {w, e} = happy_match(b)
+    {w, e} = happy_match_eq(b)
     {{:when, [], [a, w]}, e}
   end
 
   defp happy_match({:=, _, [a, b = {:=, _, _}]}) do
-    {p, e} = happy_match(b)
+    {p, e} = happy_match_eq(b)
     {{:=, [], [a, p]}, e}
   end
 
-  defp happy_match({:=, _, [pattern, expression]}) do
-    {pattern, expression}
+  defp happy_match(no_pattern_match = {:=, _, [{x, [], y}, _]}) when is_atom(x) and is_atom(y) do
+    {no_pattern_match}
+  end
+
+  defp happy_match(eq = {:=, _, _}) do
+    happy_match_eq(eq)
   end
 
   defp happy_match(expression), do: {expression}
+
+  defp happy_match_eq({:=, _, [pattern, expression]}) do
+    {pattern, expression}
+  end
 
   defp happy_form({a, _, c}) do
     {a, [happy: true], c}

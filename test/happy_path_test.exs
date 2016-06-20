@@ -7,14 +7,14 @@ defmodule HappyPathTest do
   test "match expr expands to case" do
     a = quote do
       happy_path do
-        a = b
+        {a} = b
         c
       end
     end
     b = quote do
       b
       |> case do
-           a -> {:happy, c}
+           {a} -> {:happy, c}
            x -> x
          end
       |> case do
@@ -77,12 +77,12 @@ defmodule HappyPathTest do
     a = quote do
       happy_path do
         baz
-        foo = baz
+        {foo} = baz
       end
     end
     b = quote do
       baz
-      foo = baz
+      {foo} = baz
     end
     assert_expands_to a, b, __ENV__
   end
@@ -110,7 +110,7 @@ defmodule HappyPathTest do
     a = quote do
       happy_path do
         a
-        c = b
+        {c} = b
         d
       end
     end
@@ -118,7 +118,7 @@ defmodule HappyPathTest do
       (a
        b
        |> case do
-            c -> {:happy, d}
+            {c} -> {:happy, d}
             x -> x
           end
       )|> case do
@@ -132,14 +132,14 @@ defmodule HappyPathTest do
   test "block with match and expr expands to case" do
     a = quote do
       happy_path do
-        foo = bar
+        {foo} = bar
         foo + 1
       end
     end
     b = quote do
       bar
       |> case do
-           foo -> {:happy, foo + 1}
+           {foo} -> {:happy, foo + 1}
            x -> x
          end
       |> case do
@@ -153,7 +153,7 @@ defmodule HappyPathTest do
   test "block with match and two exprs expands to case" do
     a = quote do
       happy_path do
-        foo = bar
+        {foo} = bar
         baz
         bat
       end
@@ -161,7 +161,7 @@ defmodule HappyPathTest do
     b = quote do
       bar
       |> case do
-           foo ->
+           {foo} ->
              baz
              {:happy, bat}
            x -> x
@@ -177,7 +177,7 @@ defmodule HappyPathTest do
   test "block with match and three exprs expands to case" do
     a = quote do
       happy_path do
-        foo = bar
+        {foo} = bar
         baz
         bat
         moo
@@ -186,7 +186,7 @@ defmodule HappyPathTest do
     b = quote do
       bar
       |> case do
-           foo ->
+           {foo} ->
              baz
              bat
              {:happy, moo}
@@ -203,19 +203,19 @@ defmodule HappyPathTest do
   test "sequential matches expand to nested cases" do
     a = quote do
       happy_path do
-        b = a
+        {b} = a
         c
-        e = d
+        {e} = d
         f
       end
     end
     b = quote do
       a
       |> case do
-           b ->
+           {b} ->
              c
              d |> case do
-                    e -> {:happy, f}
+                    {e} -> {:happy, f}
                     x -> x
                   end
            x -> x
@@ -245,7 +245,7 @@ defmodule HappyPathTest do
   test "else clause expand to unhappy case" do
     a = quote do
       happy_path do
-        foo = bar
+        {foo} = bar
         foo + 1
       else
         _ -> bar
@@ -254,7 +254,7 @@ defmodule HappyPathTest do
     b = quote do
       bar
       |> case do
-           foo -> {:happy, foo + 1}
+           {foo} -> {:happy, foo + 1}
            x -> x
          end
       |> case do
@@ -287,18 +287,18 @@ defmodule HappyPathTest do
   test "two consecutive match expressions expand to nested case" do
     a = quote do
       happy_path do
-        b = a
-        c = b
+        {b} = a
+        {c} = b
         d
       end
     end
     b = quote do
       a
       |> case do
-           b ->
+           {b} ->
              b
              |> case do
-                  c -> {:happy, d}
+                  {c} -> {:happy, d}
                   x -> x
                 end
            x -> x
@@ -314,14 +314,14 @@ defmodule HappyPathTest do
   test "happy with guard" do
     a = quote do
       happy_path do
-        b when is_nil(a) = a
+        b when is_nil(b) = a
         c
       end
     end
     b = quote do
       a
       |> case do
-           b when is_nil(a) -> {:happy, c}
+           b when is_nil(b) -> {:happy, c}
            x -> x
          end
       |> case do
@@ -380,7 +380,7 @@ defmodule HappyPathTest do
   test "nested case with tag" do
     a = quote do
       happy_path do
-        y = x
+        {y} = x
         @t b = a
         c
       end
@@ -388,7 +388,7 @@ defmodule HappyPathTest do
     b = quote do
       x
       |> case do
-           y ->
+           {y} ->
              {:t, a}
              |> case do
                   {:t, b} -> {:happy, c}
@@ -420,6 +420,45 @@ defmodule HappyPathTest do
       |> case do
            {:happy, x} -> x
            x -> x
+         end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "should not rewrite non-pattern matching expression" do
+    a = quote do
+      happy_path do
+        x = 1
+        y
+      end
+    end
+    b = quote do
+      x = 1
+      y
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "should rewrite match with existing var" do
+    a = quote do
+      happy_path do
+        ^x = 1
+        y
+      end
+    end
+    b = quote do
+      1
+      |> case do
+           ^x ->
+             {:happy, y}
+           x ->
+             x
+         end
+      |> case do
+           {:happy, x} ->
+             x
+           x ->
+             x
          end
     end
     assert_expands_to a, b, __ENV__

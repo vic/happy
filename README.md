@@ -50,7 +50,7 @@ happy_path do
 end
 ```
 
-gets rewritten to:
+gets rewritten to something like:
 
 ```elixir
 case(a) do
