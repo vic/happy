@@ -18,13 +18,13 @@ defmodule Happy.HappyPath do
         Happy.HappyPath.happy_macro(opts)
       end
 
-      defmacro happy_path(opts, err_handler) do
-        Happy.HappyPath.happy_opts(opts, err_handler)
+      defmacro happy_path(opts, blocks) do
+        Happy.HappyPath.happy_opts(opts, blocks)
         |> Happy.HappyPath.happy_macro
       end
 
-      defmacro happy_path!(opts, err_handler) do
-        Happy.HappyPath.happy_opts(opts, err_handler)
+      defmacro happy_path!(opts, blocks) do
+        Happy.HappyPath.happy_opts(opts, blocks)
         |> Happy.HappyPath.happy_macro!
       end
     end
@@ -58,11 +58,11 @@ defmodule Happy.HappyPath do
 
   def happy_macro([do: x, else: [{:->, _, _} | _]]), do: x
 
-  def happy_opts(else_pipe, opts) do
-    else_clauses = Keyword.get(opts, :else, []) ++ quote do
+  def happy_opts([else: else_pipe], blocks) do
+    else_clauses = Keyword.get(blocks, :else, []) ++ quote do
       x -> x |> unquote(else_pipe)
     end
-    Keyword.delete(opts, :else) ++ [else: else_clauses]
+    Keyword.delete(blocks, :else) ++ [else: else_clauses]
   end
 
   ####

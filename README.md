@@ -94,13 +94,13 @@ with many actions, all of which handle common invalid cases
 like parameter validation.
 
 In those cases you can provide `happy_path` with an
-error handler as first argument. Note that if no _local_
-else clause matches, the error value is *piped* into 
+default error handler as first argument. Note that if no *local
+else clause* matches, the error value is *piped* into 
 the provided error handler. Thus the handler is anything
 you can pipe the error value into.
 
 ```elixir
-happy_path handler do 
+happy_path(else: handler) do 
  {:ok, x} = foo
  x + 1
 else

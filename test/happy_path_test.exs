@@ -466,7 +466,7 @@ defmodule HappyPathTest do
 
   test "happy_path can take fallback error handler as first argument" do
     a = quote do
-      happy_path handle do
+      happy_path(else: handle) do
         {:ok, x} = a
         x
       else
@@ -490,7 +490,7 @@ defmodule HappyPathTest do
 
   test "happy_path can take default error handler as first argument" do
     a = quote do
-      happy_path! handle do
+      happy_path!(else: handle) do
         {:ok, x} = a
         x
       end
