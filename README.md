@@ -29,7 +29,7 @@ following goals in mind:
 
 - The [happy path](https://en.wikipedia.org/wiki/Happy_path) must be immediately obvious to the eyes.
 - Code should not be cluttered and should just work using the elixir you already know.
-- Avoid introducing noisy operators `~>>`, or counter-intuitive-arrow (to me at least) `pattern <- expr`
+- Avoid introducing noisy operators `~>>`, requiring commas after each pattern or the counter-intuitive-arrow (to me at least) `pattern <- expr`
 - Should provide a way to recover when not so happy moments come.
 
 ## Usage
