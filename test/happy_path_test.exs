@@ -509,4 +509,11 @@ defmodule HappyPathTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "happy_path with a match then direct set should not create compile-time warnings" do
+    happy_path do
+      ok = %{}
+      IO.inspect ok
+    end
+  end
+
 end
