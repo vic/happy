@@ -512,7 +512,7 @@ defmodule HappyPathTest do
   test "happy_path with a match then direct set should not create compile-time warnings" do
     happy_path do
       ok = %{}
-      IO.inspect ok
+      Map.put(ok, :done, true)
     end
   end
 

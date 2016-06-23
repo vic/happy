@@ -130,7 +130,7 @@ defmodule Happy.HappyPath do
     {{:=, [], [a, p]}, e}
   end
 
-  defp happy_match(no_pattern_match = {:=, _, [{x, [], y}, _]}) when is_atom(x) and is_atom(y) do
+  defp happy_match(no_pattern_match = {:=, _, [{x, _, y}, _]}) when is_atom(x) and is_atom(y) do
     {no_pattern_match}
   end
 
