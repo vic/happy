@@ -115,7 +115,7 @@ defmodule Happy.HappyPath do
     end
   end
 
-  defp happy_match({:@, _, [{:skip, _, [skipped = {:=, _, _}]}]}) do
+  defp happy_match({:@, _, [{:happy, _, [skipped = {:=, _, _}]}]}) do
     {:skip, skipped}
   end
 
