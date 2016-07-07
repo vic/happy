@@ -516,4 +516,41 @@ defmodule HappyPathTest do
     end
   end
 
+  test "using @skip tag doesnt expand tagged match" do
+    a = quote do
+      happy_path do
+        @skip {x, y} = {"hell", "o"}
+        {:ok, x} = x
+        y
+      end
+    end
+    b = quote do
+      ( {x, y} = {"hell", "o"}
+        x
+        |> case do
+          {:ok, x} -> {:happy, y}
+          x -> x
+        end
+      ) |> case do
+          {:happy, x} -> x
+          x -> x
+        end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
+  test "using @skip tag doesnt expand into single case" do
+    a = quote do
+      happy_path do
+        @skip {x, y} = {"hell", "o"}
+        y
+      end
+    end
+    b = quote do
+      {x, y} = {"hell", "o"}
+      y
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end

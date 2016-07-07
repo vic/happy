@@ -156,6 +156,21 @@ Tags can help error handlers to get a clue about which
 context the mismatch was produced on. It's mostly useful
 for distingishing between lots of `{:error, _}` like tuples.
 
+The special tag `@skip` lets you mark a pattern matching expression so that
+happy_path will ignore it. [#5](https://github.com/vic/happy/issues/5)
+
+```elixir
+happy_path do
+  @skip {this, would} = {"always", "match"}
+end
+```
+
+produces just:
+
+```elixir
+{this, would} = {"always", "match"}
+```
+
 
 ##### Example usage in a web application creating a user
 

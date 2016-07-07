@@ -88,8 +88,13 @@ defmodule Happy.HappyPath do
     if can_be_happier?(path) do
       happier(path) |> unhappy_path(unhappy)
     else
-      {:__block__, l, path}
+      expr = path |> Stream.map(&happy_match/1) |> Enum.map(&skipped/1)
+      {:__block__, l, expr}
     end
+  end
+
+  defp skipped({:skip, skipped}) do
+    skipped
   end
 
   defp can_be_happier?(xs) do
@@ -105,54 +110,58 @@ defmodule Happy.HappyPath do
 
   defp happy_match?(expr) do
     case happy_match(expr) do
-      {^expr} -> false
+      {:skip, _} -> false
       _ -> true
     end
   end
 
+  defp happy_match({:@, _, [{:skip, _, [skipped = {:=, _, _}]}]}) do
+    {:skip, skipped}
+  end
+
   defp happy_match({:@, _, [{tag, _, [b = {:when, _, _}]}]}) do
-    {{:when, _, [a, w]}, e} = happy_match(b)
-    {{:when, [], [{tag, a}, w]}, {tag, e}}
+    {:ok, {:when, _, [a, w]}, e} = happy_match(b)
+    {:ok, {:when, [], [{tag, a}, w]}, {tag, e}}
   end
 
   defp happy_match({:@, _, [{tag, _, [b]}]}) do
-    {p, e} = happy_match_eq(b)
-    {{tag, p}, {tag, e}}
+    {:ok, p, e} = happy_match_eq(b)
+    {:ok, {tag, p}, {tag, e}}
   end
 
   defp happy_match({:when, _, [a, b]}) do
-    {w, e} = happy_match_eq(b)
-    {{:when, [], [a, w]}, e}
+    {:ok, w, e} = happy_match_eq(b)
+    {:ok, {:when, [], [a, w]}, e}
   end
 
   defp happy_match({:=, _, [a, b = {:=, _, _}]}) do
-    {p, e} = happy_match_eq(b)
-    {{:=, [], [a, p]}, e}
+    {:ok, p, e} = happy_match_eq(b)
+    {:ok, {:=, [], [a, p]}, e}
   end
 
   defp happy_match(no_pattern_match = {:=, _, [{x, _, y}, _]}) when is_atom(x) and is_atom(y) do
-    {no_pattern_match}
+    {:skip, no_pattern_match}
   end
 
   defp happy_match(eq = {:=, _, _}) do
     happy_match_eq(eq)
   end
 
-  defp happy_match(expression), do: {expression}
+  defp happy_match(expression), do: {:skip, expression}
 
   defp happy_match_eq({:=, _, [pattern, expression]}) do
-    {pattern, expression}
+    {:ok, pattern, expression}
   end
 
   defp happy_form({a, _, c}) do
     {a, [happy: true], c}
   end
 
-  defp happy_expand({pattern, expression}, nil) do
+  defp happy_expand({:ok, pattern, expression}, nil) do
     {:=, [], [pattern, expression]}
   end
 
-  defp happy_expand({pattern, expression}, v) do
+  defp happy_expand({:ok, pattern, expression}, v) do
     quote do
       unquote(expression) |> case do
         unquote(pattern) -> unquote(v)
@@ -161,15 +170,15 @@ defmodule Happy.HappyPath do
     end |> happy_form
   end
 
-  defp happy_expand({final_expression}, nil) do
+  defp happy_expand({:skip, final_expression}, nil) do
     {:happy, final_expression}
   end
 
-  defp happy_expand({a}, {:__block__, m, b}) do
+  defp happy_expand({:skip, a}, {:__block__, m, b}) do
     {:__block__, m, [a] ++ b}
   end
 
-  defp happy_expand({a}, b) do
+  defp happy_expand({:skip, a}, b) do
     block = {:__block__, [], [a, b]}
     case b do
       {_, [happy: true], _} -> block |> happy_form
