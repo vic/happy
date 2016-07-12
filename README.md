@@ -14,7 +14,7 @@ the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elix
 
 ```elixir
   def deps do
-    [{:happy, "~> 1.3.0"}]
+    [{:happy, "~> 1.3.1"}]
   end
 ```
 
