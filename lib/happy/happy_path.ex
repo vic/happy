@@ -124,6 +124,12 @@ defmodule Happy.HappyPath do
     {:ok, {:when, [], [{tag, a}, w]}, {tag, e}}
   end
 
+  # move extra tag arguments into expression see bug #6.
+  defp happy_match({:@, _, [{tag, _, [b | bs]}]}) when length(bs) > 0 do
+    {:ok, p, {e, el, ea}} = happy_match_eq(b)
+    {:ok, {tag, p}, {tag, {e, el, ea ++ bs}}}
+  end
+
   defp happy_match({:@, _, [{tag, _, [b]}]}) do
     {:ok, p, e} = happy_match_eq(b)
     {:ok, {tag, p}, {tag, e}}

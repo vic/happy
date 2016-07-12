@@ -553,4 +553,29 @@ defmodule HappyPathTest do
     assert_expands_to a, b, __ENV__
   end
 
+  test "tag with right hand case rewrites block to be part of right case" do
+    a = quote do
+      happy_path do
+        @foo x = case m do
+                   n -> n
+                 end
+        y
+      end
+    end
+    b = quote do
+      {:foo, case(m) do
+               n -> n
+             end}
+      |> case() do
+          {:foo, x} -> {:happy, y}
+          x -> x
+         end
+      |> case() do
+            {:happy, x} -> x
+            x -> x
+         end
+    end
+    assert_expands_to a, b, __ENV__
+  end
+
 end
