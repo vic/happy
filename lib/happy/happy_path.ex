@@ -124,6 +124,12 @@ defmodule Happy.HappyPath do
     {:ok, {:when, [], [{tag, a}, w]}, {tag, e}}
   end
 
+  # fix bug #5: @happy tag with right case skips code rewrite.
+  defp happy_match({:@, _, [{:happy, _, [eq = {:=, l, [a, b]} | bs]}]}) when length(bs) > 0 do
+    {be, bl, bx} = b
+    {:skip, {:=, l, [a, {be, bl, bx ++ bs}]}}
+  end
+
   # move extra tag arguments into expression see bug #6.
   defp happy_match({:@, _, [{tag, _, [b | bs]}]}) when length(bs) > 0 do
     {:ok, p, {e, el, ea}} = happy_match_eq(b)
