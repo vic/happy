@@ -2,6 +2,8 @@
 
 the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
+*If you are using Elixir >= 1.2, you might prefer [happy_with](http://github.com/vic/happy_with)*
+
 - [Installation](#installation)
 - [About](#about)
 - [Usage](#usage)
