@@ -1,4 +1,6 @@
 # Happy <a href="https://travis-ci.org/vic/happy"><img src="https://travis-ci.org/vic/happy.svg"></a>
+[![help maintain this lib](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
+
 
 the alchemist's [happy path](https://en.wikipedia.org/wiki/Happy_path) with elixir
 
